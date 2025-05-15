@@ -1,54 +1,52 @@
 <?php
 /**
-* Plugin Name: AvantLink Integration For WooCommerce
-* Author: AvantLink
-* Description: This allows WooCommerce users to easily integrate AvantLink into their site.
-* Version: 1.0.11
-*/
+ * Plugin Name: AvantLink Integration For WooCommerce
+ * Author: AvantLink
+ * Description: This allows WooCommerce users to easily integrate AvantLink into their site.
+ * Version: 1.0.11
+ */
 
-if (! defined( 'ABSPATH' ) ) {
+if (! defined('ABSPATH')) {
     exit;
 }
 
- //======================SET UP======================\\
+//======================SET UP======================\\
 //====================================================\\
 
-function avantlinkwoo_menu () {
-    //Generate Admin Page
-    add_menu_page('AvantLink Integration', 'AvantLink Tracking', 'manage_options', 'avantlinkwoo_merchant_menu', 'avantlinkwoo_merchant_page', plugin_dir_url( __FILE__ ) . 'optimised.svg');
+function avantlinkwoo_menu() {
+    // Generate Admin Page
+    add_menu_page('AvantLink Integration', 'AvantLink Tracking', 'manage_options', 'avantlinkwoo_merchant_menu', 'avantlinkwoo_merchant_page', plugin_dir_url(__FILE__) . 'optimised.svg');
 
-    //The AvantLink Icon on the Admin Dashboard is a bit offcentered so this fixes the problem.
-    wp_enqueue_style('avantlinkwoo_styles', plugin_dir_url( __FILE__ ) . 'avplugin.css');
+    // The AvantLink Icon on the Admin Dashboard is a bit offcentered so this fixes the problem.
+    wp_enqueue_style('avantlinkwoo_styles', plugin_dir_url(__FILE__) . 'avplugin.css');
     
     add_option('avantlinkwoo_settings');
 }
 
-//Initialize Admin Page
+// Initialize Admin Page
 add_action('admin_menu', 'avantlinkwoo_menu');
-//Activate Custom Settings
+// Activate Custom Settings
 add_action('admin_init', 'avantlinkwoo_custom_settings');
 
-function avantlinkwoo_custom_settings () {
+function avantlinkwoo_custom_settings() {
     register_setting('avantlinkwoo_settings', 'avantlinkwoo_merchant_id', array('type' => 'integer', 'description' => 'Merchant ID supplied by AvantLink', 'sanitize_callback' => 'avantlinkwoo_sanitize_merchant_id'));
     add_settings_section('avantlinkwoo_sidebar_options', '', 'avantlinkwoo_sidebar_options', 'avantlinkwoo_merchant_menu');
     add_settings_field('merchant_id', 'Merchant ID', 'avantlinkwoo_input_merchant_ID', 'avantlinkwoo_merchant_menu', 'avantlinkwoo_sidebar_options');
 }
 
-//Admin Page Forms
-function avantlinkwoo_merchant_page () {
+// Admin Page Forms
+function avantlinkwoo_merchant_page() {
     $merchantId = get_option('avantlinkwoo_merchant_id');
     if ($merchantId) {
         $merchantIdDisplay = "<p>You must have an advertiser/merchant account with AvantLink to use this plugin. If you do not have an account, please
                               <a href='https://avantlink.com/signup'>complete this application</a></p>
                               <p>If you are currently integrating with AvantLink, enter your Merchant ID and click save to install your tracking.</p>";
-    }
-    else {
+    } else {
         $merchantIdDisplay = '';
         global $wp_version;
         if (version_compare($wp_version, '5.3', '>=')) {
             $notificationType = 'warning';
-        }
-        else {
+        } else {
             $notificationType = 'error';
         }
         add_settings_error('noInput', 'settings_updated', 'You must have a valid Merchant ID configured for AvantLink tracking to work.', $notificationType);
@@ -65,31 +63,30 @@ function avantlinkwoo_merchant_page () {
         <?php avantlink_escape_string($merchantIdDisplay); ?>
 
         <form method="POST" action="options.php">
-            <?php   settings_fields('avantlinkwoo_settings');
-                    do_settings_sections('avantlinkwoo_merchant_menu');
-                    submit_button(); ?>
+            <?php
+            settings_fields('avantlinkwoo_settings');
+            do_settings_sections('avantlinkwoo_merchant_menu');
+            submit_button();
+            ?>
         </form>
     </div>
 
     <?php
 }
 
-//Setting Input and Display
-function avantlinkwoo_input_merchant_ID () {
+// Setting Input and Display
+function avantlinkwoo_input_merchant_ID() {
     $merchantId = get_option('avantlinkwoo_merchant_id');
-    avantlink_escape_string("<input    type='text' 
-                    name='avantlinkwoo_merchant_id' 
-                    value='$merchantId' 
-                    placeholder='Merchant ID'/>");
+    avantlink_escape_string("<input type='text' name='avantlinkwoo_merchant_id' value='$merchantId' placeholder='Merchant ID'/>");
 }
 
-//Settings Steps
-function avantlinkwoo_sidebar_options () {
+// Settings Steps
+function avantlinkwoo_sidebar_options() {
     avantlink_escape_string('');
 }
 
-//Sanitize & Validate Merchant ID
-function avantlinkwoo_sanitize_merchant_id ($input) {
+// Sanitize & Validate Merchant ID
+function avantlinkwoo_sanitize_merchant_id($input) {
     $output = sanitize_text_field($input);
     if (is_numeric($output) && $output > 10000) {
         return $output;
@@ -98,7 +95,7 @@ function avantlinkwoo_sanitize_merchant_id ($input) {
     return false;
 }
 
-//Escaping html and string output for page
+// Escaping html and string output for page
 function avantlink_escape_string($input) {
     echo wp_kses(
         $input,
@@ -114,32 +111,31 @@ function avantlink_escape_string($input) {
     );
 }
 
- //=====================SITE WIDE====================\\
+//=====================SITE WIDE====================\\
 //====================================================\\
 
 // This is the site wide script
-function avantlinkwoo_sitewide( ) {
-    $merchantId = get_option( 'avantlinkwoo_merchant_id' );
-    wp_register_script('avantlinkwoo_sitewideScript', plugin_dir_url( __FILE__ ) . '/sitewide.js', array(), '', true);
-    wp_localize_script('avantlinkwoo_sitewideScript', 'merchant', array('id' => __( $merchantId, 'plugin-domain')));
+function avantlinkwoo_sitewide() {
+    $merchantId = get_option('avantlinkwoo_merchant_id');
+    wp_register_script('avantlinkwoo_sitewideScript', plugin_dir_url(__FILE__) . '/sitewide.js', array(), '', true);
+    wp_localize_script('avantlinkwoo_sitewideScript', 'merchant', array('id' => __($merchantId, 'plugin-domain')));
     wp_enqueue_script('avantlinkwoo_sitewideScript');
 }
 
 // This will fire when the site loads up
 add_action('wp_enqueue_scripts', 'avantlinkwoo_sitewide');
 
- //=====================TRACKING=====================\\
+//=====================TRACKING=====================\\
 //====================================================\\
 
 // This will be hooked below to wc_thank_you
 function avantlinkwoo_tracking($order_id) {
-
     // Get Order Object
     $order = wc_get_order($order_id);
 
     if ($order) {
         // Logic for New Customer based on login
-        if ( $order->get_user_id() > 0 ) {
+        if ($order->get_user_id() > 0) {
             $avlNewCustomer = 'N';
         } else {
             $avlNewCustomer = 'Y';
@@ -149,7 +145,7 @@ function avantlinkwoo_tracking($order_id) {
     $merchantId = get_option('avantlinkwoo_merchant_id');
 
     // Avantmetrics Script
-    wp_register_script('avantlinkwoo_orderarray', plugin_dir_url( __FILE__ ) . '/orderarray.js', array(), '', true);
+    wp_register_script('avantlinkwoo_orderarray', plugin_dir_url(__FILE__) . '/orderarray.js', array(), '', true);
 
     if ($order) {
         $items = [];
@@ -168,8 +164,7 @@ function avantlinkwoo_tracking($order_id) {
                 $parent_data = $product->get_parent_data();
                 $parent_sku = $parent_data['sku'];
                 $variant_sku = $product->get_sku();
-            }
-            else {
+            } else {
                 /** @var WC_Product_Simple $product */
                 $parent_sku = $product->get_sku();
                 $variant_sku = '';
@@ -189,17 +184,16 @@ function avantlinkwoo_tracking($order_id) {
             'order_state' => $order->billing_state,
             'order_currency' => $order->currency,
             'merchant_id' => $merchantId,
-            'coupons' => $order->get_used_coupons(),
+            'coupons' => $order->get_coupon_codes(), // Replaced get_used_coupons()
             'new_customer' => $avlNewCustomer,
             'order_items' => json_encode($items)
         ));
     } else {
-        wp_localize_script('avantlinkwoo_orderarray', 'order', array('merchant_id' => __( $merchantId, 'plugin-domain' )));
+        wp_localize_script('avantlinkwoo_orderarray', 'order', array('merchant_id' => __($merchantId, 'plugin-domain')));
     }
     wp_enqueue_script('avantlinkwoo_orderarray');
     wp_enqueue_script('avantlinkwoo_sitewideScript');
 }
 
-// Hook to wc_thank you function
+// Hook to wc_thank_you function
 add_action('woocommerce_thankyou', 'avantlinkwoo_tracking');
-
